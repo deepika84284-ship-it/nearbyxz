@@ -11,15 +11,16 @@ import {
   KeyRound,
   UserCheck
 } from 'lucide-react';
-import { RAMANATHAPURAM_DISTRICT_DATA, ALL_RAMNAD_PLACES } from '../data/initialData';
+import { ALL_RAMNAD_MASTER_LOCATIONS } from '../data/locationDatabase';
 
 export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register' | 'personas'
   const [email, setEmail] = useState('karthik@neednear.in');
   const [password, setPassword] = useState('••••••••');
   const [name, setName] = useState('');
-  const [panchayat, setPanchayat] = useState('Perungulam Panchayat');
+  const [panchayat, setPanchayat] = useState('Perungulam');
   const [role, setRole] = useState('Customer/Buyer');
+  const [phone, setPhone] = useState('+91 98421 12345');
   const [successMessage, setSuccessMessage] = useState('');
 
   const handleLoginSubmit = (e) => {
@@ -40,9 +41,13 @@ export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
       avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
       role: "Customer/Buyer",
       district: "Ramanathapuram",
-      taluk: "Ramanathapuram",
-      panchayat: "Perungulam Panchayat",
-      locality: "Perungulam Main Road",
+      taluk: "Ramanathapuram Taluk",
+      firka: "Perunkulam Firka",
+      revenueVillage: "Perungulam Revenue Village",
+      villagePanchayat: null,
+      locality: "Perungulam",
+      adminType: "Locality / Revenue Village",
+      communityName: "Perungulam Community",
       isVerified: true,
       isTrustedMember: true,
       overallRating: 5.0,
@@ -71,9 +76,14 @@ export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
       avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
       role: role,
       district: "Ramanathapuram",
-      taluk: "Ramanathapuram",
-      panchayat: panchayat,
-      locality: `${panchayat} Main Road`,
+      taluk: "Ramanathapuram Taluk",
+      firka: "Perunkulam Firka",
+      revenueVillage: "Perungulam Revenue Village",
+      villagePanchayat: null,
+      locality: panchayat,
+      adminType: "Locality / Revenue Village",
+      communityName: `${panchayat} Community`,
+      localityDetail: `${panchayat} Main Road`,
       isVerified: true,
       isTrustedMember: true,
       overallRating: 5.0,
@@ -262,15 +272,17 @@ export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
 
             <div>
               <label className="block text-slate-300 font-bold mb-1 flex items-center gap-1">
-                <MapPin className="w-3.5 h-3.5 text-emerald-400" /> Select Panchayat / Village (RMD):
+                <MapPin className="w-3.5 h-3.5 text-emerald-400" /> Select Official Locality / Village (RMD):
               </label>
               <select
                 value={panchayat}
                 onChange={(e) => setPanchayat(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-emerald-300 font-semibold focus:outline-none focus:border-emerald-500"
               >
-                {ALL_RAMNAD_PLACES.map(p => (
-                  <option key={p.panchayat} value={p.panchayat}>📍 {p.panchayat} ({p.taluk})</option>
+                {ALL_RAMNAD_MASTER_LOCATIONS.map(p => (
+                  <option key={p.displayName} value={p.displayName}>
+                    📍 {p.displayName} ({p.firka ? `${p.firka}, ` : ''}{p.taluk} - {p.adminType})
+                  </option>
                 ))}
               </select>
             </div>

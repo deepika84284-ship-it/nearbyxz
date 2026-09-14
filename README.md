@@ -30,19 +30,22 @@ This application is built with a modern, high-performance web development stack:
 
 ## 🏛️ Ramanathapuram Official Administrative Location System
 
-NeedNear implements the **Official Ramanathapuram District Dual Administrative Structure** directly from the government source-of-truth datasets, keeping them strictly separated in the UI:
+NeedNear implements the **Official Ramanathapuram District Administrative Structure** directly from official government datasets (`ramanathapuram.nic.in`), ensuring that Revenue Administration, Development Administration, and Urban Local Bodies are never mixed:
 
-### 1. 🌾 Development Administration (வளர்ச்சி நிர்வாகம்)
-* **Structure**: 11 Development Union Blocks & **429 Village Panchayats**
-* **Blocks Included**: Ramanathapuram (25), Thiruppullani (33), Mandapam (28), Paramakudi (39), Bogalur (26), Nainarkoil (48), Kadaladi (60), Kamuthi (53), Mudukulathur (46), Thiruvadanai (47), R.S. Mangalam (24).
-* **Usage**: Hyperlocal panchayat community hub, resident directory, and neighborhood item sharing.
-
-### 2. 🏛️ Revenue Administration (வருவாய் நிர்வாகம்)
+### 1. 📜 Revenue Administration (வருவாய் நிர்வாகம்)
 * **Structure**: 2 Revenue Divisions, 9 Revenue Taluks, 38 Firkas & **400 Revenue Villages**
 * **Divisions & Taluks**:
-  * **Ramanathapuram Division**: Ramanathapuram, Rameswaram, Thiruvadanai, Kilakarai, R.S. Mangalam.
+  * **Ramanathapuram Division**: Ramanathapuram, Rameswaram, Thiruvadanai, Kilakarai, Rajasingamangalam.
   * **Paramakudi Division**: Paramakudi, Kadaladi, Kamuthi, Mudukulathur.
-* **Usage**: Official address verification and legal revenue locality tags.
+* **Perungulam Context**: Officially identified as **Perungulam Revenue Village** in **Perunkulam Firka**, Ramanathapuram Taluk (`villagePanchayat: null`). Rendered as **`Perungulam Community`** without inventing fake Panchayat names.
+
+### 2. 🌾 Development Administration (வளர்ச்சி நிர்வாகம்)
+* **Structure**: 11 Development Union Blocks / Panchayat Unions & **429 Village Panchayats**
+* **Blocks**: Mandapam, Ramanathapuram, Raja Singa Mangalam, Thiruppullani, Thiruvadanai, Bogalur, Kadaladi, Kamuthi, Mudukulathur, Nainarkoil, Paramakudi.
+
+### 3. 🏙️ Urban Local Bodies (நகர்ப்புற உள்ளாட்சி அமைப்புகள்)
+* **Municipalities (4)**: Ramanathapuram, Rameswaram, Kilakarai, Paramakudi.
+* **Town Panchayats (7)**: Mandapam, Sayalkudi, Kamuthi, Abiramam, Mudukulathur, Rajasingamangalam, Tondi.
 
 ---
 
@@ -50,7 +53,7 @@ NeedNear implements the **Official Ramanathapuram District Dual Administrative S
 
 ### 🔒 1. Mandatory Authentication Gate (`LoginGateScreen`)
 * Restricted access ensuring that only authenticated local residents can access community listings, chat, and hub data.
-* Multi-mode login: Phone + Password, Instant Registration with official Ramnad location dropdown, or 1-Click Quick Demo Personas.
+* Multi-mode login: Email ID + Password, Continue with Google, Instant Registration with official Ramnad location dropdown, or 1-Click Quick Demo Personas.
 
 ### 📊 2. 6-Star Multi-Criteria Deal Rating Engine
 Every completed transaction triggers a 6-criteria verification review:
@@ -66,7 +69,7 @@ Every completed transaction triggers a 6-criteria verification review:
 * Selecting dissatisfied status automatically creates an official NeedNear Support Ticket (`TICKET-#9402`) for community moderation.
 
 ### 📍 4. Privacy-First Location Safeguards
-* **Public View**: Shows approximate location only (e.g. `📍 Perungulam Panchayat • 2.4 km away`).
+* **Public View**: Shows approximate location only (e.g. `📍 Perungulam • Perunkulam Firka • 2.4 km away`).
 * **Private View**: Exact pickup address and landmark are revealed strictly inside chat after deal confirmation.
 
 ### 💬 5. Contextual Chat & Dynamic Deal State Machine

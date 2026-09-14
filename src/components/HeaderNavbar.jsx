@@ -13,11 +13,7 @@ import {
   Building2,
   FileCheck2
 } from 'lucide-react';
-import { 
-  ALL_VILLAGE_PANCHAYATS, 
-  ALL_REVENUE_VILLAGES, 
-  COMBINED_RAMNAD_MASTER_LOCATIONS 
-} from '../data/locationDatabase';
+import { ALL_RAMNAD_MASTER_LOCATIONS } from '../data/locationDatabase';
 
 export default function HeaderNavbar({ 
   selectedPanchayat, 
@@ -33,15 +29,12 @@ export default function HeaderNavbar({
   const [datasetFilter, setDatasetFilter] = useState('All'); // 'All' | 'Panchayats' | 'Revenue'
   const [isPlaceDropdownOpen, setIsPlaceDropdownOpen] = useState(false);
 
-  const locationsToSearch = datasetFilter === 'Panchayats' 
-    ? ALL_VILLAGE_PANCHAYATS 
-    : datasetFilter === 'Revenue' 
-    ? ALL_REVENUE_VILLAGES 
-    : COMBINED_RAMNAD_MASTER_LOCATIONS;
+  const locationsToSearch = ALL_RAMNAD_MASTER_LOCATIONS;
 
   const filteredPlaces = locationsToSearch.filter(p => 
-    p.name.toLowerCase().includes(placeSearchQuery.toLowerCase()) ||
-    p.parentUnit.toLowerCase().includes(placeSearchQuery.toLowerCase())
+    p.displayName.toLowerCase().includes(placeSearchQuery.toLowerCase()) ||
+    p.taluk.toLowerCase().includes(placeSearchQuery.toLowerCase()) ||
+    (p.firka && p.firka.toLowerCase().includes(placeSearchQuery.toLowerCase()))
   );
 
   return (
@@ -156,30 +149,30 @@ export default function HeaderNavbar({
 
                   {filteredPlaces.map(p => (
                     <button
-                      key={p.name}
+                      key={p.displayName}
                       onClick={() => {
-                        setSelectedPanchayat(p.name);
+                        setSelectedPanchayat(p.displayName);
                         setIsPlaceDropdownOpen(false);
                       }}
                       className={`w-full text-left px-3 py-2 rounded-xl flex items-center justify-between transition-all ${
-                        selectedPanchayat === p.name ? 'bg-emerald-500/20 text-emerald-300 font-bold' : 'text-slate-300 hover:bg-slate-800'
+                        selectedPanchayat === p.displayName ? 'bg-emerald-500/20 text-emerald-300 font-bold' : 'text-slate-300 hover:bg-slate-800'
                       }`}
                     >
                       <div className="min-w-0 pr-2">
-                        <span className="block font-semibold truncate text-white">📍 {p.name}</span>
+                        <span className="block font-semibold truncate text-white">📍 {p.displayName}</span>
                         <div className="flex items-center space-x-1.5 text-[10px] mt-0.5">
-                          <span className="text-slate-400">{p.parentUnit}</span>
+                          <span className="text-slate-400">{p.firka ? `${p.firka}, ` : ''}{p.taluk}</span>
                           <span className="text-slate-600">•</span>
                           <span className={`px-1.5 py-0.2 rounded font-semibold text-[9px] ${
-                            p.adminType.includes('Panchayat') 
+                            p.adminType.includes('Village Panchayat') 
                               ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30' 
                               : 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/30'
                           }`}>
-                            {p.adminType.includes('Panchayat') ? '🏛️ Panchayat' : '📜 Revenue Village'}
+                            {p.adminType}
                           </span>
                         </div>
                       </div>
-                      {selectedPanchayat === p.name && <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />}
+                      {selectedPanchayat === p.displayName && <Check className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />}
                     </button>
                   ))}
                 </div>
@@ -309,8 +302,8 @@ export default function HeaderNavbar({
             className="bg-slate-800 text-emerald-300 font-semibold px-2 py-1 rounded border border-slate-700 text-xs"
           >
             <option value="All">All Ramnad District</option>
-            {COMBINED_RAMNAD_MASTER_LOCATIONS.map(p => (
-              <option key={p.name} value={p.name}>📍 {p.name} ({p.parentUnit})</option>
+            {ALL_RAMNAD_MASTER_LOCATIONS.map(p => (
+              <option key={p.displayName} value={p.displayName}>📍 {p.displayName} ({p.firka ? `${p.firka}, ` : ''}{p.taluk})</option>
             ))}
           </select>
         </div>

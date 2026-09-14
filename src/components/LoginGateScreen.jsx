@@ -13,14 +13,14 @@ import {
   Users,
   Award
 } from 'lucide-react';
-import { COMBINED_RAMNAD_MASTER_LOCATIONS } from '../data/locationDatabase';
+import { ALL_RAMNAD_MASTER_LOCATIONS } from '../data/locationDatabase';
 
 export default function LoginGateScreen({ allUsers, onLoginSuccess }) {
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register' | 'personas'
   const [email, setEmail] = useState('karthik@neednear.in');
   const [password, setPassword] = useState('••••••••');
   const [name, setName] = useState('');
-  const [panchayat, setPanchayat] = useState('Perungulam Panchayat');
+  const [panchayat, setPanchayat] = useState('Perungulam');
   const [role, setRole] = useState('Customer/Buyer');
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -41,9 +41,13 @@ export default function LoginGateScreen({ allUsers, onLoginSuccess }) {
       avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
       role: "Customer/Buyer",
       district: "Ramanathapuram",
-      taluk: "Ramanathapuram",
-      panchayat: "Perungulam Panchayat",
-      locality: "Perungulam Main Road",
+      taluk: "Ramanathapuram Taluk",
+      firka: "Perunkulam Firka",
+      revenueVillage: "Perungulam Revenue Village",
+      villagePanchayat: null,
+      locality: "Perungulam",
+      adminType: "Locality / Revenue Village",
+      communityName: "Perungulam Community",
       isVerified: true,
       isTrustedMember: true,
       overallRating: 5.0,
@@ -304,7 +308,7 @@ export default function LoginGateScreen({ allUsers, onLoginSuccess }) {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-300">Select Official Panchayat / Village</label>
+                <label className="text-xs font-bold text-slate-300">Select Official Ramanathapuram Locality / Village</label>
                 <div className="relative">
                   <MapPin className="w-4 h-4 text-emerald-400 absolute left-3 top-3" />
                   <select
@@ -312,8 +316,10 @@ export default function LoginGateScreen({ allUsers, onLoginSuccess }) {
                     onChange={(e) => setPanchayat(e.target.value)}
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-emerald-300 focus:outline-none focus:border-teal-400 font-bold"
                   >
-                    {COMBINED_RAMNAD_MASTER_LOCATIONS.map(p => (
-                      <option key={p.name} value={p.name}>📍 {p.name} ({p.parentUnit})</option>
+                    {ALL_RAMNAD_MASTER_LOCATIONS.map(p => (
+                      <option key={p.displayName} value={p.displayName}>
+                        📍 {p.displayName} ({p.firka ? `${p.firka}, ` : ''}{p.taluk} - {p.adminType})
+                      </option>
                     ))}
                   </select>
                 </div>

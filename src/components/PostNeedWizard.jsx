@@ -23,7 +23,7 @@ export default function PostNeedWizard({ currentUser, onClose, onSubmitItem }) {
   const [type, setType] = useState('Rent'); // 'Rent' | 'Buy' | 'Borrow' | 'Free'
   const [price, setPrice] = useState('300');
   const [duration, setDuration] = useState('2');
-  const [panchayat, setPanchayat] = useState(currentUser.panchayat || 'Perungulam Panchayat');
+  const [panchayat, setPanchayat] = useState(currentUser.locality || 'Perungulam');
   const [description, setDescription] = useState('Required for village cultural event in Perungulam. High brightness projector preferred.');
 
   const totalSteps = 5;

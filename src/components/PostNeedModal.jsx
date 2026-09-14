@@ -8,7 +8,7 @@ export default function PostNeedModal({ currentUser, onClose, onSubmitItem }) {
   const [category, setCategory] = useState('Electronics & Events');
   const [type, setType] = useState('Rent'); // 'Rent' | 'Sell' | 'Borrow'
   const [price, setPrice] = useState('');
-  const [panchayat, setPanchayat] = useState(currentUser.panchayat || 'Perungulam Panchayat');
+  const [panchayat, setPanchayat] = useState(currentUser.locality || 'Perungulam');
   const [description, setDescription] = useState('');
   const [image, setImage] = useState('https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&q=80&w=600');
   const [errorMsg, setErrorMsg] = useState('');

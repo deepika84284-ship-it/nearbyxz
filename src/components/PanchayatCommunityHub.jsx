@@ -16,7 +16,7 @@ import {
   FileCheck2,
   Info
 } from 'lucide-react';
-import { OFFICIAL_DEVELOPMENT_ADMINISTRATION, OFFICIAL_REVENUE_ADMINISTRATION } from '../data/locationDatabase';
+import { DEVELOPMENT_ADMINISTRATION, REVENUE_ADMINISTRATION } from '../data/locationDatabase';
 
 export default function PanchayatCommunityHub({ 
   selectedPanchayat, 
@@ -30,17 +30,36 @@ export default function PanchayatCommunityHub({
 }) {
   const [activeAdminTab, setActiveAdminTab] = useState('panchayats'); // 'panchayats' | 'revenue_villages'
 
-  // Find stats for selected Panchayat or fallback to Perungulam
-  const currentPanchayatStats = communityStats.find(s => s.panchayat === selectedPanchayat) || communityStats[0];
+  // Find stats for selected community or fallback to first
+  const currentCommunityStats = communityStats.find(s => 
+    s.communityName === selectedPanchayat || 
+    s.locality === selectedPanchayat || 
+    s.panchayat === selectedPanchayat
+  ) || communityStats[0];
 
-  // Members in this Panchayat
-  const panchayatMembers = users.filter(u => selectedPanchayat === 'All' || u.panchayat === currentPanchayatStats.panchayat);
+  const communityTitle = currentCommunityStats.communityName || 
+    (currentCommunityStats.isPanchayatVerified ? `${currentCommunityStats.locality} Village Panchayat Community` : `${currentCommunityStats.locality} Community`);
+
+  // Members in this community
+  const panchayatMembers = users.filter(u => 
+    selectedPanchayat === 'All' || 
+    u.communityName === currentCommunityStats.communityName || 
+    u.locality === currentCommunityStats.locality
+  );
   
-  // Items in this Panchayat
-  const panchayatItems = items.filter(i => selectedPanchayat === 'All' || i.panchayat === currentPanchayatStats.panchayat);
+  // Items in this community
+  const panchayatItems = items.filter(i => 
+    selectedPanchayat === 'All' || 
+    i.communityName === currentCommunityStats.communityName || 
+    i.locality === currentCommunityStats.locality
+  );
 
-  // Reviews in this Panchayat
-  const panchayatReviews = reviews.filter(r => selectedPanchayat === 'All' || r.panchayat === currentPanchayatStats.panchayat);
+  // Reviews in this community
+  const panchayatReviews = reviews.filter(r => 
+    selectedPanchayat === 'All' || 
+    r.communityName === currentCommunityStats.communityName || 
+    r.locality === currentCommunityStats.locality
+  );
 
   return (
     <div className="space-y-8 pb-12">
@@ -90,7 +109,7 @@ export default function PanchayatCommunityHub({
             <div>
               <span className="font-bold text-teal-300">Development Administration (Panchayat Unions):</span>
               <p className="text-[11px] text-slate-400 mt-0.5">
-                Ramanathapuram has <strong>429 Village Panchayats</strong> organized under <strong>11 Panchayat Union Blocks</strong> (Mandapam, Ramanathapuram, R.S. Mangalam, Thiruppullani, Thiruvadanai, Bogalur, Kadaladi, Kamuthi, Mudukulathur, Nainarkoil, Paramakudi). Used for community sharing & local civic hubs.
+                Ramanathapuram has <strong>429 Village Panchayats</strong> organized under <strong>11 Panchayat Union Blocks</strong> (Mandapam, Ramanathapuram, R.S. Mangalam, Thiruppullani, Thiruvadanai, Bogalur, Kadaladi, Kamuthi, Mudukulathur, Nainarkoil, Paramakudi). Used for official Village Panchayat community hubs.
               </p>
             </div>
           </div>
@@ -100,7 +119,7 @@ export default function PanchayatCommunityHub({
             <div>
               <span className="font-bold text-cyan-300">Revenue Administration (Taluks & Firkas):</span>
               <p className="text-[11px] text-slate-400 mt-0.5">
-                Ramanathapuram has <strong>400 Revenue Villages</strong> organized under <strong>9 Revenue Taluks</strong> and <strong>38 Revenue Firkas</strong> across <strong>2 Revenue Divisions</strong> (Ramanathapuram & Paramakudi). Used for official land & revenue location mapping.
+                Ramanathapuram has <strong>400 Revenue Villages</strong> organized under <strong>9 Revenue Taluks</strong> and <strong>38 Revenue Firkas</strong> (including Perunkulam Firka) across <strong>2 Revenue Divisions</strong>. Used for locality & revenue village community hubs.
               </p>
             </div>
           </div>
@@ -111,8 +130,8 @@ export default function PanchayatCommunityHub({
       <div className="relative rounded-3xl overflow-hidden border border-emerald-500/30 p-6 sm:p-8 bg-slate-900 shadow-2xl">
         <div className="absolute inset-0">
           <img 
-            src={currentPanchayatStats.heroBanner} 
-            alt={currentPanchayatStats.panchayat} 
+            src={currentCommunityStats.heroBanner} 
+            alt={communityTitle} 
             className="w-full h-full object-cover opacity-20 filter blur-sm"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/90 to-transparent"></div>
@@ -122,37 +141,47 @@ export default function PanchayatCommunityHub({
           <div className="flex flex-wrap items-center gap-2">
             <span className="bg-emerald-500/20 text-emerald-300 text-xs font-extrabold px-3 py-1 rounded-full border border-emerald-500/30 flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{currentPanchayatStats.taluk} Taluk</span>
+              <span>{currentCommunityStats.locality || currentCommunityStats.communityName}</span>
             </span>
-            <span className="bg-teal-500/20 text-teal-300 text-xs font-extrabold px-3 py-1 rounded-full border border-teal-500/30">
-              Ramanathapuram District
+            <span className="bg-slate-800 text-slate-300 text-xs font-bold px-3 py-1 rounded-full border border-slate-700">
+              {currentCommunityStats.firka ? `${currentCommunityStats.firka} • ` : ''}{currentCommunityStats.taluk}
+            </span>
+            <span className={`text-xs font-extrabold px-3 py-1 rounded-full border ${
+              currentCommunityStats.isPanchayatVerified 
+                ? 'bg-teal-500/20 text-teal-300 border-teal-500/40' 
+                : 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+            }`}>
+              {currentCommunityStats.isPanchayatVerified ? '🏛️ Official Village Panchayat' : '📍 Locality / Revenue Community'}
             </span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-            {currentPanchayatStats.panchayat} Community Hub
+            {communityTitle}
           </h1>
 
           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            {currentPanchayatStats.description}
+            {currentCommunityStats.description}
           </p>
 
-          {/* Quick Panchayat Switcher Pills */}
+          {/* Quick Community Switcher Pills */}
           <div className="pt-2 flex items-center space-x-2 overflow-x-auto scrollbar-none">
-            <span className="text-xs text-slate-400 font-bold whitespace-nowrap">Switch Hub:</span>
-            {communityStats.map(s => (
-              <button
-                key={s.panchayat}
-                onClick={() => setSelectedPanchayat(s.panchayat)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                  selectedPanchayat === s.panchayat
-                    ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
-                    : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                }`}
-              >
-                📍 {s.panchayat}
-              </button>
-            ))}
+            <span className="text-xs text-slate-400 font-bold whitespace-nowrap">Switch Community:</span>
+            {communityStats.map(s => {
+              const name = s.locality || s.communityName;
+              return (
+                <button
+                  key={name}
+                  onClick={() => setSelectedPanchayat(name)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                    selectedPanchayat === name || selectedPanchayat === s.communityName
+                      ? 'bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20'
+                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  📍 {name}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -161,25 +190,25 @@ export default function PanchayatCommunityHub({
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-center space-y-1">
           <Users className="w-5 h-5 text-emerald-400 mx-auto" />
-          <div className="text-2xl font-extrabold text-white">{currentPanchayatStats.activeMembers}</div>
+          <div className="text-2xl font-extrabold text-white">{currentCommunityStats.activeMembers}</div>
           <p className="text-[11px] text-slate-400 font-medium">Active Members</p>
         </div>
 
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-center space-y-1">
           <Handshake className="w-5 h-5 text-teal-400 mx-auto" />
-          <div className="text-2xl font-extrabold text-white">{currentPanchayatStats.successfulDeals}</div>
+          <div className="text-2xl font-extrabold text-white">{currentCommunityStats.successfulDeals}</div>
           <p className="text-[11px] text-slate-400 font-medium">Successful Deals</p>
         </div>
 
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-center space-y-1">
           <Store className="w-5 h-5 text-cyan-400 mx-auto" />
-          <div className="text-2xl font-extrabold text-white">{currentPanchayatStats.activeListings}</div>
+          <div className="text-2xl font-extrabold text-white">{currentCommunityStats.activeListings}</div>
           <p className="text-[11px] text-slate-400 font-medium">Active Listings</p>
         </div>
 
         <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 text-center space-y-1">
           <HelpCircle className="w-5 h-5 text-purple-400 mx-auto" />
-          <div className="text-2xl font-extrabold text-white">{currentPanchayatStats.activeNeeds}</div>
+          <div className="text-2xl font-extrabold text-white">{currentCommunityStats.activeNeeds}</div>
           <p className="text-[11px] text-slate-400 font-medium">Active Needs</p>
         </div>
 
@@ -187,7 +216,7 @@ export default function PanchayatCommunityHub({
           <div className="flex justify-center text-amber-400">
             <Star className="w-5 h-5 fill-amber-400" />
           </div>
-          <div className="text-2xl font-extrabold text-amber-400">{currentPanchayatStats.averageRating}</div>
+          <div className="text-2xl font-extrabold text-amber-400">{currentCommunityStats.averageRating}</div>
           <p className="text-[11px] text-slate-400 font-medium">Community Exp.</p>
         </div>
 

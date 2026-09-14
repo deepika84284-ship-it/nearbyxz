@@ -49,12 +49,17 @@ export default function ItemListings({
   ];
 
   const filteredItems = items.filter(item => {
-    const matchesPanchayat = selectedPanchayat === 'All' || item.panchayat === selectedPanchayat;
+    const matchesPanchayat = selectedPanchayat === 'All' || 
+      item.locality === selectedPanchayat || 
+      item.communityName === selectedPanchayat || 
+      item.panchayat === selectedPanchayat;
     const matchesCategory = selectedCategory === 'All' || item.category === selectedCategory;
     const matchesMode = selectedMode === 'All' || item.type === selectedMode;
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          item.panchayat.toLowerCase().includes(searchQuery.toLowerCase());
+                          (item.locality && item.locality.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                          (item.firka && item.firka.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                          (item.taluk && item.taluk.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesPanchayat && matchesCategory && matchesMode && matchesSearch;
   });
 

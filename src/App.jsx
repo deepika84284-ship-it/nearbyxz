@@ -236,7 +236,7 @@ export default function App() {
         {/* VIEW 2: PANCHAYAT COMMUNITY HUB */}
         {activeTab === 'community' && (
           <PanchayatCommunityHub
-            selectedPanchayat={selectedPanchayat === 'All' ? 'Perungulam Panchayat' : selectedPanchayat}
+            selectedPanchayat={selectedPanchayat === 'All' ? 'Perungulam' : selectedPanchayat}
             setSelectedPanchayat={setSelectedPanchayat}
             communityStats={communityStats}
             users={users}

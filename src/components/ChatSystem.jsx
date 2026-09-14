@@ -255,7 +255,7 @@ export default function ChatSystem({
               type="text"
               value={customLocation}
               onChange={(e) => setCustomLocation(e.target.value)}
-              placeholder="e.g. Perungulam Panchayat office nearby ground"
+              placeholder="e.g. Perungulam East Street ground"
               className="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-white"
             />
             <button onClick={handleSharePickupLocation} className="bg-emerald-500 text-slate-950 font-bold px-3 py-1.5 rounded-lg">
