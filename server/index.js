@@ -39,6 +39,7 @@ let isConnected = false;
 
 async function connectDB() {
   try {
+    console.log("📡 Connecting to MongoDB Atlas Cluster0...");
     await client.connect();
     db = client.db("neednear_db");
     isConnected = true;
@@ -58,8 +59,18 @@ async function connectDB() {
       console.log("✅ Initial data seeded to MongoDB Atlas!");
     }
   } catch (error) {
-    console.error("⚠️ MongoDB Atlas Warning:", error.message);
-    console.log("ℹ️ Server running with memory fallback store for NeedNear.");
+    console.log("⚠️ SRV Connection attempt note:", error.message);
+    try {
+      // Direct Shard Fallback
+      const directUri = "mongodb://ammuzz:ammuzz33@cluster0-shard-00-00.qjtkz6v.mongodb.net:27017,cluster0-shard-00-01.qjtkz6v.mongodb.net:27017,cluster0-shard-00-02.qjtkz6v.mongodb.net:27017/neednear_db?ssl=true&replicaSet=atlas-qjtkz6-shard-0&authSource=admin&retryWrites=true&w=majority";
+      const fallbackClient = new MongoClient(directUri, { connectTimeoutMS: 8000 });
+      await fallbackClient.connect();
+      db = fallbackClient.db("neednear_db");
+      isConnected = true;
+      console.log("🟢 Successfully connected to MongoDB Atlas Cluster0 via Direct Replica Set!");
+    } catch (fallbackErr) {
+      console.log("ℹ️ Server running with built-in memory store for NeedNear Ramnad.");
+    }
   }
 }
 
