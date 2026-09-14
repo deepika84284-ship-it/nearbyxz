@@ -4,7 +4,7 @@ import {
   ShieldCheck, 
   User, 
   Lock, 
-  Phone, 
+  Mail, 
   MapPin, 
   UserCheck, 
   ArrowRight, 
@@ -17,7 +17,7 @@ import { COMBINED_RAMNAD_MASTER_LOCATIONS } from '../data/locationDatabase';
 
 export default function LoginGateScreen({ allUsers, onLoginSuccess }) {
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register' | 'personas'
-  const [phone, setPhone] = useState('+91 98421 12345');
+  const [email, setEmail] = useState('karthik@neednear.in');
   const [password, setPassword] = useState('••••••••');
   const [name, setName] = useState('');
   const [panchayat, setPanchayat] = useState('Perungulam Panchayat');
@@ -26,9 +26,10 @@ export default function LoginGateScreen({ allUsers, onLoginSuccess }) {
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
-    setSuccessMessage('Login Successful! Entering NeedNear Ramnad...');
+    const matchedUser = allUsers.find(u => u.email?.toLowerCase() === email.trim().toLowerCase()) || allUsers[0];
+    setSuccessMessage(`Login Successful as ${matchedUser.name}! Entering NeedNear Ramnad...`);
     setTimeout(() => {
-      onLoginSuccess(allUsers[0]);
+      onLoginSuccess(matchedUser);
     }, 1000);
   };
 
@@ -39,6 +40,7 @@ export default function LoginGateScreen({ allUsers, onLoginSuccess }) {
     const newUser = {
       id: `u-${Date.now()}`,
       name: name,
+      email: email,
       avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
       role: role,
       district: "Ramanathapuram",
@@ -50,12 +52,12 @@ export default function LoginGateScreen({ allUsers, onLoginSuccess }) {
       overallRating: 5.0,
       reviewCount: 1,
       successfulDeals: 0,
-      phone: phone,
+      phone: "+91 98421 *****",
       bio: `Verified ${role} resident in ${panchayat}, Ramanathapuram.`,
       joinedDate: "Just now"
     };
 
-    setSuccessMessage(`Account created for ${name} in ${panchayat}! Entering NeedNear...`);
+    setSuccessMessage(`Account created for ${name} (${email}) in ${panchayat}! Entering NeedNear...`);
     setTimeout(() => {
       onLoginSuccess(newUser);
     }, 1200);
@@ -150,26 +152,26 @@ export default function LoginGateScreen({ allUsers, onLoginSuccess }) {
             </div>
           )}
 
-          {/* MODE 1: PHONE LOGIN FORM */}
+          {/* MODE 1: EMAIL LOGIN FORM */}
           {authMode === 'login' && (
             <form onSubmit={handleLoginSubmit} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300">Registered Phone Number</label>
+                <label className="text-xs font-bold text-slate-300">Registered Email Address (மின்னஞ்சல்)</label>
                 <div className="relative">
-                  <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                   <input
-                    type="text"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500"
-                    placeholder="+91 98421 XXXXX"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-medium"
+                    placeholder="e.g. karthik@neednear.in"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-300">Password</label>
+                <label className="text-xs font-bold text-slate-300">Password (கடவுச்சொல்)</label>
                 <div className="relative">
                   <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                   <input
@@ -213,12 +215,13 @@ export default function LoginGateScreen({ allUsers, onLoginSuccess }) {
 
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-xs font-bold text-slate-300">Phone</label>
+                  <label className="text-xs font-bold text-slate-300">Email Address</label>
                   <input
-                    type="text"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     required
+                    placeholder="user@neednear.in"
                     className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-teal-400"
                   />
                 </div>
@@ -273,6 +276,7 @@ export default function LoginGateScreen({ allUsers, onLoginSuccess }) {
                   <div
                     key={u.id}
                     onClick={() => {
+                      setEmail(u.email || `${u.name.toLowerCase().replace(/\s+/g, '')}@neednear.in`);
                       setSuccessMessage(`Logged in as ${u.name}!`);
                       setTimeout(() => onLoginSuccess(u), 600);
                     }}
@@ -285,7 +289,9 @@ export default function LoginGateScreen({ allUsers, onLoginSuccess }) {
                           <span className="font-bold text-xs text-white group-hover:text-emerald-300 transition-colors">{u.name}</span>
                           <UserCheck className="w-3.5 h-3.5 text-emerald-400" />
                         </div>
-                        <p className="text-[11px] text-slate-400">{u.role} • <span className="text-slate-300">{u.panchayat}</span></p>
+                        <p className="text-[11px] text-slate-400">
+                          <span className="text-emerald-400 font-semibold">{u.email || `${u.name.toLowerCase().replace(/\s+/g, '')}@neednear.in`}</span> • <span className="text-slate-300">{u.panchayat}</span>
+                        </p>
                       </div>
                     </div>
                     <button className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1.5 rounded-xl text-xs font-bold group-hover:bg-emerald-500 group-hover:text-slate-950 transition-all">

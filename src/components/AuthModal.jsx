@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   ShieldCheck, 
   Lock, 
-  Phone, 
+  Mail, 
   User, 
   MapPin, 
   CheckCircle2, 
@@ -15,7 +15,7 @@ import { RAMANATHAPURAM_DISTRICT_DATA, ALL_RAMNAD_PLACES } from '../data/initial
 
 export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register' | 'personas'
-  const [phone, setPhone] = useState('+91 98421 12345');
+  const [email, setEmail] = useState('karthik@neednear.in');
   const [password, setPassword] = useState('••••••••');
   const [name, setName] = useState('');
   const [panchayat, setPanchayat] = useState('Perungulam Panchayat');
@@ -24,10 +24,10 @@ export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
 
   const handleLoginSubmit = (e) => {
     e.preventDefault();
-    setSuccessMessage('Login Successful! Welcome back to NeedNear Ramnad.');
+    const matchedUser = allUsers.find(u => u.email?.toLowerCase() === email.trim().toLowerCase()) || allUsers[0];
+    setSuccessMessage(`Login Successful as ${matchedUser.name}! Welcome back to NeedNear Ramnad.`);
     setTimeout(() => {
-      // Login as user 1 or matching user
-      onLoginSuccess(allUsers[0]);
+      onLoginSuccess(matchedUser);
       onClose();
     }, 1000);
   };
@@ -39,6 +39,7 @@ export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
     const newUser = {
       id: `u-${Date.now()}`,
       name: name,
+      email: email,
       avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
       role: role,
       district: "Ramanathapuram",
@@ -50,12 +51,12 @@ export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
       overallRating: 5.0,
       reviewCount: 1,
       successfulDeals: 0,
-      phone: phone,
+      phone: "+91 98421 *****",
       bio: `Verified ${role} resident in ${panchayat}, Ramanathapuram.`,
       joinedDate: "Just now"
     };
 
-    setSuccessMessage(`Account created for ${name} in ${panchayat}!`);
+    setSuccessMessage(`Account created for ${name} (${email}) in ${panchayat}!`);
     setTimeout(() => {
       onLoginSuccess(newUser);
       onClose();
@@ -122,13 +123,14 @@ export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
           <form onSubmit={handleLoginSubmit} className="space-y-4 text-xs">
             <div>
               <label className="block text-slate-300 font-bold mb-1 flex items-center gap-1">
-                <Phone className="w-3.5 h-3.5 text-emerald-400" /> Phone Number / RMD ID:
+                <Mail className="w-3.5 h-3.5 text-emerald-400" /> Email Address (மின்னஞ்சல் முகவரி):
               </label>
               <input
-                type="text"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-emerald-500"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="karthik@neednear.in"
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:border-emerald-500 font-medium"
               />
             </div>
 
