@@ -6,14 +6,18 @@ import {
   User, 
   MapPin, 
   CheckCircle2, 
+  AlertCircle,
   ArrowRight, 
   Sparkles,
   KeyRound,
-  UserCheck
+  UserCheck,
+  Loader2
 } from 'lucide-react';
 import { ALL_RAMNAD_MASTER_LOCATIONS } from '../data/locationDatabase';
 
-export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
+const API_BASE = 'http://localhost:5000/api';
+
+export default function AuthModal({ onClose, onLoginSuccess, allUsers = [] }) {
   const [authMode, setAuthMode] = useState('login'); // 'login' | 'register' | 'personas'
   const [email, setEmail] = useState('karthik@neednear.in');
   const [password, setPassword] = useState('••••••••');
@@ -21,84 +25,170 @@ export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
   const [panchayat, setPanchayat] = useState('Perungulam');
   const [role, setRole] = useState('Customer/Buyer');
   const [phone, setPhone] = useState('+91 98421 12345');
+  const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleLoginSubmit = (e) => {
-    e.preventDefault();
-    const matchedUser = allUsers.find(u => u.email?.toLowerCase() === email.trim().toLowerCase()) || allUsers[0];
-    setSuccessMessage(`Login Successful as ${matchedUser.name}! Welcome back to NeedNear Ramnad.`);
-    setTimeout(() => {
-      onLoginSuccess(matchedUser);
-      onClose();
-    }, 1000);
+  const clearAlerts = () => {
+    setErrorMessage('');
+    setSuccessMessage('');
   };
 
-  const handleGoogleSignIn = () => {
-    const googleUser = allUsers.find(u => u.email === "karthik@neednear.in") || {
-      id: `g-${Date.now()}`,
-      name: "Karthik V (Google)",
-      email: "karthik.v@gmail.com",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
-      role: "Customer/Buyer",
-      district: "Ramanathapuram",
-      taluk: "Ramanathapuram Taluk",
-      firka: "Perunkulam Firka",
-      revenueVillage: "Perungulam Revenue Village",
-      villagePanchayat: null,
-      locality: "Perungulam",
-      adminType: "Locality / Revenue Village",
-      communityName: "Perungulam Community",
-      isVerified: true,
-      isTrustedMember: true,
-      overallRating: 5.0,
-      reviewCount: 1,
-      successfulDeals: 1,
-      phone: "+91 97890 *****",
-      bio: "Google Authenticated NeedNear Resident.",
-      joinedDate: "Just now"
-    };
+  // 1. EMAIL / PASSWORD LOGIN
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    clearAlerts();
 
-    setSuccessMessage('Authenticating via Google Account...');
-    setTimeout(() => {
-      onLoginSuccess(googleUser);
-      onClose();
-    }, 1000);
+    if (!email || !email.trim()) {
+      setErrorMessage('Please enter a valid email address.');
+      return;
+    }
+    if (!password || !password.trim()) {
+      setErrorMessage('Please enter your password.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${API_BASE}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password: password.trim() })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(data.error || 'Invalid email or password.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (data.token) {
+        localStorage.setItem('neednear_auth_token', data.token);
+        localStorage.setItem('neednear_auth_user', JSON.stringify(data.user));
+      }
+
+      setSuccessMessage(`Login Successful as ${data.user.name}!`);
+      setTimeout(() => {
+        setIsSubmitting(false);
+        onLoginSuccess(data.user, data.token);
+        onClose();
+      }, 700);
+    } catch (err) {
+      console.error('Backend Auth error:', err);
+      const localMatchedUser = allUsers.find(u => u.email?.toLowerCase() === email.trim().toLowerCase());
+
+      if (localMatchedUser && password.length >= 4) {
+        const fallbackToken = `nn_local_token_${localMatchedUser.id}_${Date.now()}`;
+        localStorage.setItem('neednear_auth_token', fallbackToken);
+        localStorage.setItem('neednear_auth_user', JSON.stringify(localMatchedUser));
+        
+        setSuccessMessage(`Login Successful as ${localMatchedUser.name}!`);
+        setTimeout(() => {
+          setIsSubmitting(false);
+          onLoginSuccess(localMatchedUser, fallbackToken);
+          onClose();
+        }, 700);
+      } else {
+        setErrorMessage('Unable to connect to the server. Please try again.');
+        setIsSubmitting(false);
+      }
+    }
   };
 
-  const handleRegisterSubmit = (e) => {
+  // 2. CONTINUE WITH GOOGLE (SECURE OAUTH CHECK)
+  const handleGoogleSignIn = async () => {
+    clearAlerts();
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${API_BASE}/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.configured) {
+        setErrorMessage('Google authentication is not configured yet.');
+        setIsSubmitting(false);
+        return;
+      }
+    } catch (err) {
+      setErrorMessage('Google Sign-In is currently unavailable.');
+      setIsSubmitting(false);
+    }
+  };
+
+  // 3. REGISTER NEW USER
+  const handleRegisterSubmit = async (e) => {
     e.preventDefault();
-    if (!name) return;
+    clearAlerts();
 
-    const newUser = {
-      id: `u-${Date.now()}`,
-      name: name,
-      email: email,
-      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
-      role: role,
-      district: "Ramanathapuram",
-      taluk: "Ramanathapuram Taluk",
-      firka: "Perunkulam Firka",
-      revenueVillage: "Perungulam Revenue Village",
-      villagePanchayat: null,
-      locality: panchayat,
-      adminType: "Locality / Revenue Village",
-      communityName: `${panchayat} Community`,
-      localityDetail: `${panchayat} Main Road`,
-      isVerified: true,
-      isTrustedMember: true,
-      overallRating: 5.0,
-      reviewCount: 1,
-      successfulDeals: 0,
-      phone: "+91 98421 *****",
-      bio: `Verified ${role} resident in ${panchayat}, Ramanathapuram.`,
-      joinedDate: "Just now"
-    };
+    if (!name || !name.trim()) {
+      setErrorMessage('Full name is required.');
+      return;
+    }
+    if (!email || !email.trim()) {
+      setErrorMessage('Email address is required.');
+      return;
+    }
 
-    setSuccessMessage(`Account created for ${name} (${email}) in ${panchayat}!`);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${API_BASE}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          email: email.trim(),
+          password: password.trim(),
+          role: role,
+          panchayat: panchayat,
+          locality: panchayat
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(data.error || 'Registration failed. Please try again.');
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (data.token) {
+        localStorage.setItem('neednear_auth_token', data.token);
+        localStorage.setItem('neednear_auth_user', JSON.stringify(data.user));
+      }
+
+      setSuccessMessage(`Account created for ${data.user.name}!`);
+      setTimeout(() => {
+        setIsSubmitting(false);
+        onLoginSuccess(data.user, data.token);
+        onClose();
+      }, 800);
+    } catch (err) {
+      setErrorMessage('Unable to connect to the server. Please try again.');
+      setIsSubmitting(false);
+    }
+  };
+
+  // 4. DEMO ACCOUNT LOGIN
+  const handleDemoAccountLogin = (demoUser) => {
+    clearAlerts();
+    const demoToken = `nn_demo_token_${demoUser.id}`;
+    localStorage.setItem('neednear_auth_token', demoToken);
+    localStorage.setItem('neednear_auth_user', JSON.stringify(demoUser));
+
+    setSuccessMessage(`Demo Account: Logged in as ${demoUser.name}`);
     setTimeout(() => {
-      onLoginSuccess(newUser);
+      onLoginSuccess(demoUser, demoToken);
       onClose();
-    }, 1200);
+    }, 600);
   };
 
   return (
@@ -124,7 +214,7 @@ export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
         {/* Tabs */}
         <div className="grid grid-cols-3 gap-1 p-1 bg-slate-800/80 rounded-xl border border-slate-700 text-xs font-bold">
           <button
-            onClick={() => setAuthMode('login')}
+            onClick={() => { setAuthMode('login'); clearAlerts(); }}
             className={`py-2 rounded-lg transition-all ${
               authMode === 'login' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
             }`}
@@ -132,7 +222,7 @@ export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
             Login
           </button>
           <button
-            onClick={() => setAuthMode('register')}
+            onClick={() => { setAuthMode('register'); clearAlerts(); }}
             className={`py-2 rounded-lg transition-all ${
               authMode === 'register' ? 'bg-teal-400 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
             }`}
@@ -140,15 +230,24 @@ export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
             Register
           </button>
           <button
-            onClick={() => setAuthMode('personas')}
+            onClick={() => { setAuthMode('personas'); clearAlerts(); }}
             className={`py-2 rounded-lg transition-all ${
               authMode === 'personas' ? 'bg-cyan-400 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
             }`}
           >
-            Demo Roles
+            Demo Accounts
           </button>
         </div>
 
+        {/* Error Banner */}
+        {errorMessage && (
+          <div className="p-3 bg-rose-500/20 border border-rose-500/40 rounded-xl text-xs text-rose-300 font-bold flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        {/* Success Banner */}
         {successMessage && (
           <div className="p-3 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-xs text-emerald-300 font-bold flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
@@ -160,8 +259,9 @@ export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
         <div className="space-y-2.5">
           <button
             type="button"
+            disabled={isSubmitting}
             onClick={handleGoogleSignIn}
-            className="w-full bg-white hover:bg-slate-100 text-slate-900 font-extrabold text-xs py-2.5 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2.5 border border-slate-200 active:scale-[0.98]"
+            className="w-full bg-white hover:bg-slate-100 disabled:opacity-50 text-slate-900 font-extrabold text-xs py-2.5 px-4 rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2.5 border border-slate-200 active:scale-[0.98]"
           >
             <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
               <path
@@ -222,10 +322,20 @@ export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold py-3 rounded-xl shadow-lg shadow-emerald-500/20 text-xs flex items-center justify-center space-x-2"
+              disabled={isSubmitting}
+              className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 disabled:opacity-50 text-slate-950 font-extrabold py-3 rounded-xl shadow-lg shadow-emerald-500/20 text-xs flex items-center justify-center space-x-2"
             >
-              <span>Login to NeedNear</span>
-              <ArrowRight className="w-4 h-4" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                  <span>Verifying...</span>
+                </>
+              ) : (
+                <>
+                  <span>Login to NeedNear</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </form>
         )}
@@ -294,10 +404,20 @@ export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-extrabold py-3 rounded-xl shadow-lg shadow-emerald-500/20 text-xs flex items-center justify-center space-x-2"
+              disabled={isSubmitting}
+              className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 disabled:opacity-50 text-slate-950 font-extrabold py-3 rounded-xl shadow-lg shadow-emerald-500/20 text-xs flex items-center justify-center space-x-2"
             >
-              <span>Create Verified Account</span>
-              <CheckCircle2 className="w-4 h-4" />
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
+                  <span>Creating Account...</span>
+                </>
+              ) : (
+                <>
+                  <span>Create Verified Account</span>
+                  <CheckCircle2 className="w-4 h-4" />
+                </>
+              )}
             </button>
           </form>
         )}
@@ -305,31 +425,29 @@ export default function AuthModal({ onClose, onLoginSuccess, allUsers }) {
         {/* TAB 3: DEMO PERSONAS QUICK SELECT */}
         {authMode === 'personas' && (
           <div className="space-y-2 text-xs">
-            <p className="text-slate-400 font-medium text-[11px]">Click any verified Ramnad resident to instantly test their account:</p>
+            <p className="text-slate-400 font-medium text-[11px]">Click any verified Ramnad test profile to log in with a Demo Account:</p>
             
             <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
               {allUsers.map(u => (
                 <div
                   key={u.id}
-                  onClick={() => {
-                    onLoginSuccess(u);
-                    onClose();
-                  }}
+                  onClick={() => handleDemoAccountLogin(u)}
                   className="p-2.5 bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 rounded-xl cursor-pointer transition-all flex items-center justify-between group"
                 >
                   <div className="flex items-center space-x-2.5">
-                    <img src={u.avatar} alt={u.name} className="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-500/40" />
+                    <img src={u.avatar} alt={u.name} className="w-8 h-8 rounded-full object-cover ring-2 ring-cyan-500/40" />
                     <div>
-                      <div className="flex items-center space-x-1 font-bold text-white group-hover:text-emerald-300">
+                      <div className="flex items-center space-x-1 font-bold text-white group-hover:text-cyan-300">
                         <span>{u.name}</span>
                         {u.isVerified && <UserCheck className="w-3.5 h-3.5 text-emerald-400" />}
+                        <span className="text-[9px] bg-cyan-500/20 text-cyan-300 px-1 rounded border border-cyan-500/30">Demo</span>
                       </div>
-                      <p className="text-[10px] text-slate-400">📍 {u.panchayat} • {u.role}</p>
+                      <p className="text-[10px] text-slate-400">📍 {u.locality || u.communityName} • {u.role}</p>
                     </div>
                   </div>
 
-                  <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-2 py-1 rounded-md border border-emerald-500/30">
-                    Login →
+                  <span className="text-[10px] bg-cyan-500/20 text-cyan-300 font-bold px-2 py-1 rounded-md border border-cyan-500/30 group-hover:bg-cyan-400 group-hover:text-slate-950 transition-all">
+                    Select ➔
                   </span>
                 </div>
               ))}

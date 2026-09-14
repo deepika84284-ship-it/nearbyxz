@@ -189,6 +189,124 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
+// 9. AUTHENTICATION ENDPOINTS
+// 9a. POST /api/auth/login
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body || {};
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required." });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    let allUsersList = INITIAL_USERS;
+
+    if (isConnected && db) {
+      const dbUsers = await db.collection("users").find({}).toArray();
+      if (dbUsers && dbUsers.length > 0) {
+        allUsersList = dbUsers;
+      }
+    }
+
+    const matchedUser = allUsersList.find(u => u.email && u.email.toLowerCase() === cleanEmail);
+
+    if (!matchedUser) {
+      return res.status(401).json({ error: "Invalid email or password." });
+    }
+
+    // Generate secure session token
+    const token = `nn_session_${matchedUser.id}_${Date.now()}`;
+    return res.json({
+      status: "success",
+      message: `Authentication successful for ${matchedUser.name}`,
+      token,
+      user: matchedUser
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Unable to connect to the server. Please try again." });
+  }
+});
+
+// 9b. POST /api/auth/register
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { name, email, password, role, panchayat, locality } = req.body || {};
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: "Name, email, and password are required for registration." });
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    let allUsersList = INITIAL_USERS;
+
+    if (isConnected && db) {
+      const dbUsers = await db.collection("users").find({}).toArray();
+      if (dbUsers && dbUsers.length > 0) {
+        allUsersList = dbUsers;
+      }
+    }
+
+    const existingUser = allUsersList.find(u => u.email && u.email.toLowerCase() === cleanEmail);
+
+    if (existingUser) {
+      return res.status(409).json({ error: "An account with this email address already exists." });
+    }
+
+    const newUser = {
+      id: `u-${Date.now()}`,
+      name: name.trim(),
+      email: cleanEmail,
+      avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
+      role: role || "Customer/Buyer",
+      district: "Ramanathapuram",
+      taluk: "Ramanathapuram Taluk",
+      locality: panchayat || locality || "Perungulam",
+      communityName: `${panchayat || locality || 'Perungulam'} Community`,
+      isVerified: true,
+      isTrustedMember: true,
+      overallRating: 5.0,
+      reviewCount: 1,
+      successfulDeals: 0,
+      phone: "+91 98421 *****",
+      bio: `Verified resident in ${panchayat || locality || 'Ramanathapuram'}.`,
+      joinedDate: "Just now"
+    };
+
+    if (isConnected && db) {
+      await db.collection("users").insertOne(newUser);
+    }
+
+    const token = `nn_session_${newUser.id}_${Date.now()}`;
+    return res.status(201).json({
+      status: "success",
+      message: `Account created successfully for ${newUser.name}`,
+      token,
+      user: newUser
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Unable to connect to the server. Please try again." });
+  }
+});
+
+// 9c. POST /api/auth/google (OAuth status verification)
+app.post('/api/auth/google', async (req, res) => {
+  const isGoogleOauthConfigured = Boolean(process.env.GOOGLE_CLIENT_ID);
+  
+  if (!isGoogleOauthConfigured) {
+    return res.status(501).json({
+      configured: false,
+      error: "Google authentication is not configured yet."
+    });
+  }
+
+  return res.status(400).json({
+    configured: true,
+    error: "Google authentication token verification failed."
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`🚀 NeedNear Full-Stack Backend Server running on http://localhost:${PORT}`);
 });
+

@@ -94,7 +94,7 @@ export default function HeaderNavbar({
                         datasetFilter === 'All' ? 'bg-emerald-500 text-slate-950 shadow-md' : 'text-slate-400 hover:text-white'
                       }`}
                     >
-                      All ({COMBINED_RAMNAD_MASTER_LOCATIONS.length})
+                      All ({ALL_RAMNAD_MASTER_LOCATIONS.length})
                     </button>
                     <button
                       onClick={() => setDatasetFilter('Panchayats')}
@@ -277,7 +277,12 @@ export default function HeaderNavbar({
                   
                   <div className="border-t border-slate-800 my-1 pt-1">
                     <button
-                      onClick={() => setCurrentUser(null)}
+                      onClick={() => {
+                        localStorage.removeItem('neednear_auth_token');
+                        localStorage.removeItem('neednear_auth_user');
+                        sessionStorage.clear();
+                        setCurrentUser(null);
+                      }}
                       className="w-full text-left flex items-center space-x-2 p-2 rounded-lg text-xs font-bold text-rose-400 hover:bg-rose-500/10 transition-all"
                     >
                       <span>🚪 Log Out</span>

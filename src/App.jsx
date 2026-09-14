@@ -48,14 +48,31 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [activeDealId, setActiveDealId] = useState(INITIAL_DEALS[0].id);
 
+  // Restore authenticated session on page refresh
+  useEffect(() => {
+    try {
+      const storedToken = localStorage.getItem('neednear_auth_token');
+      const storedUserRaw = localStorage.getItem('neednear_auth_user');
+
+      if (storedToken && storedUserRaw) {
+        const parsedUser = JSON.parse(storedUserRaw);
+        if (parsedUser && parsedUser.id) {
+          setCurrentUser(parsedUser);
+        }
+      }
+    } catch (e) {
+      console.warn('Session restoration failed, requiring sign in');
+      localStorage.removeItem('neednear_auth_token');
+      localStorage.removeItem('neednear_auth_user');
+    }
+  }, []);
+
   // Fetch initial data from Express + MongoDB backend
   useEffect(() => {
     fetch(`${API_BASE}/items`)
-      ? fetch(`${API_BASE}/items`)
-          .then(res => res.json())
-          .then(data => { if (Array.isArray(data) && data.length > 0) setItems(data); })
-          .catch(err => console.log('Using local dataset for items'))
-      : null;
+      .then(res => res.json())
+      .then(data => { if (Array.isArray(data) && data.length > 0) setItems(data); })
+      .catch(err => console.log('Using local dataset for items'));
 
     fetch(`${API_BASE}/reviews`)
       .then(res => res.json())

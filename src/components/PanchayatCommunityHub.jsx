@@ -231,40 +231,46 @@ export default function PanchayatCommunityHub({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
-            <Award className="w-5 h-5 text-emerald-400" /> Trusted Members in {currentPanchayatStats.panchayat}
+            <Award className="w-5 h-5 text-emerald-400" /> Trusted Members in {currentCommunityStats?.locality || currentCommunityStats?.communityName || 'Community'}
           </h2>
           <span className="text-xs text-slate-400">{panchayatMembers.length} Verified Residents</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {panchayatMembers.map(mem => (
-            <div 
-              key={mem.id}
-              onClick={() => onOpenOwnerProfile(mem)}
-              className="p-4 bg-slate-900/90 rounded-2xl border border-slate-800 hover:border-emerald-500/40 cursor-pointer transition-all flex items-start space-x-3 group"
-            >
-              <img src={mem.avatar} alt={mem.name} className="w-12 h-12 rounded-2xl object-cover ring-2 ring-emerald-500/40" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-1.5">
-                  <h4 className="font-bold text-white text-sm group-hover:text-emerald-300 transition-colors truncate">{mem.name}</h4>
-                  {mem.isVerified && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />}
-                </div>
-                
-                <p className="text-[11px] text-slate-400 truncate">{mem.locality}</p>
+        {panchayatMembers.length === 0 ? (
+          <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-2xl text-center text-xs text-slate-400">
+            No active member profiles registered in this specific community yet.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {panchayatMembers.map(mem => (
+              <div 
+                key={mem.id}
+                onClick={() => onOpenOwnerProfile && onOpenOwnerProfile(mem)}
+                className="p-4 bg-slate-900/90 rounded-2xl border border-slate-800 hover:border-emerald-500/40 cursor-pointer transition-all flex items-start space-x-3 group"
+              >
+                <img src={mem.avatar} alt={mem.name} className="w-12 h-12 rounded-2xl object-cover ring-2 ring-emerald-500/40" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center space-x-1.5">
+                    <h4 className="font-bold text-white text-sm group-hover:text-emerald-300 transition-colors truncate">{mem.name}</h4>
+                    {mem.isVerified && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />}
+                  </div>
+                  
+                  <p className="text-[11px] text-slate-400 truncate">{mem.locality || mem.panchayat}</p>
 
-                <div className="flex items-center space-x-3 mt-2 text-xs font-semibold">
-                  <span className="text-amber-400 flex items-center gap-0.5">
-                    ⭐ {mem.overallRating}
-                  </span>
-                  <span className="text-slate-500">•</span>
-                  <span className="text-emerald-300">{mem.successfulDeals} Deals</span>
-                  <span className="text-slate-500">•</span>
-                  <span className="text-cyan-300">{mem.reviewCount} Reviews</span>
+                  <div className="flex items-center space-x-3 mt-2 text-xs font-semibold">
+                    <span className="text-amber-400 flex items-center gap-0.5">
+                      ⭐ {mem.overallRating}
+                    </span>
+                    <span className="text-slate-500">•</span>
+                    <span className="text-emerald-300">{mem.successfulDeals} Deals</span>
+                    <span className="text-slate-500">•</span>
+                    <span className="text-cyan-300">{mem.reviewCount} Reviews</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ACTIVE ITEMS & NEEDS IN PANCHAYAT */}
@@ -273,58 +279,70 @@ export default function PanchayatCommunityHub({
         {/* Available Items */}
         <div className="lg:col-span-7 space-y-4">
           <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <Store className="w-4 h-4 text-emerald-400" /> Active Items in {currentPanchayatStats.panchayat}
+            <Store className="w-4 h-4 text-emerald-400" /> Active Items in {currentCommunityStats?.locality || currentCommunityStats?.communityName || 'Community'}
           </h3>
 
-          <div className="space-y-3">
-            {panchayatItems.map(item => (
-              <div 
-                key={item.id}
-                onClick={() => onSelectItem(item)}
-                className="p-3.5 bg-slate-900/90 rounded-2xl border border-slate-800 hover:border-emerald-500/40 cursor-pointer transition-all flex items-center justify-between"
-              >
-                <div className="flex items-center space-x-3">
-                  <img src={item.image} alt={item.title} className="w-14 h-14 rounded-xl object-cover" />
-                  <div>
-                    <h4 className="text-xs sm:text-sm font-bold text-white">{item.title}</h4>
-                    <p className="text-[11px] text-slate-400">₹{item.price} / {item.priceUnit} • {item.distanceKm} km away</p>
-                    <div className="flex items-center space-x-1 text-amber-400 text-[10px] font-bold mt-1">
-                      <span>⭐ {item.rating} ({item.reviewsCount} reviews)</span>
+          {panchayatItems.length === 0 ? (
+            <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-2xl text-center text-xs text-slate-400">
+              No active item listings in this community currently. Switch location filter or post a new item!
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {panchayatItems.map(item => (
+                <div 
+                  key={item.id}
+                  onClick={() => onSelectItem && onSelectItem(item)}
+                  className="p-3.5 bg-slate-900/90 rounded-2xl border border-slate-800 hover:border-emerald-500/40 cursor-pointer transition-all flex items-center justify-between"
+                >
+                  <div className="flex items-center space-x-3">
+                    <img src={item.image} alt={item.title} className="w-14 h-14 rounded-xl object-cover" />
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-white">{item.title}</h4>
+                      <p className="text-[11px] text-slate-400">₹{item.price} / {item.priceUnit} • {item.distanceKm} km away</p>
+                      <div className="flex items-center space-x-1 text-amber-400 text-[10px] font-bold mt-1">
+                        <span>⭐ {item.rating} ({item.reviewsCount} reviews)</span>
+                      </div>
                     </div>
                   </div>
+                  <ArrowRight className="w-4 h-4 text-slate-500" />
                 </div>
-                <ArrowRight className="w-4 h-4 text-slate-500" />
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Community Recent Reviews Feed */}
         <div className="lg:col-span-5 space-y-4">
           <h3 className="text-lg font-bold text-white flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-teal-400" /> Recent Panchayat Reviews
+            <MessageSquare className="w-4 h-4 text-teal-400" /> Recent Community Reviews
           </h3>
 
-          <div className="space-y-3">
-            {panchayatReviews.map(rev => (
-              <div key={rev.id} className="p-3.5 bg-slate-900/90 rounded-2xl border border-slate-800 space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <img src={rev.reviewerAvatar} alt={rev.reviewerName} className="w-6 h-6 rounded-full object-cover" />
-                    <span className="font-semibold text-slate-200">{rev.reviewerName}</span>
+          {panchayatReviews.length === 0 ? (
+            <div className="p-6 bg-slate-900/60 border border-slate-800 rounded-2xl text-center text-xs text-slate-400">
+              No recent reviews in this community yet.
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {panchayatReviews.map(rev => (
+                <div key={rev.id} className="p-3.5 bg-slate-900/90 rounded-2xl border border-slate-800 space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <img src={rev.reviewerAvatar} alt={rev.reviewerName} className="w-6 h-6 rounded-full object-cover" />
+                      <span className="font-semibold text-slate-200">{rev.reviewerName}</span>
+                    </div>
+                    <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.2 rounded border border-emerald-500/30">
+                      ✓ Verified Deal
+                    </span>
                   </div>
-                  <span className="text-[10px] bg-emerald-500/20 text-emerald-300 font-bold px-1.5 py-0.2 rounded border border-emerald-500/30">
-                    ✓ Verified Deal
-                  </span>
+                  <p className="text-slate-300 italic text-xs">"{rev.textFeedback}"</p>
+                  <div className="text-[10px] text-slate-500 flex justify-between">
+                    <span>For: {rev.itemTitle}</span>
+                    <span>{rev.createdAt}</span>
+                  </div>
                 </div>
-                <p className="text-slate-300 italic text-xs">"{rev.textFeedback}"</p>
-                <div className="text-[10px] text-slate-500 flex justify-between">
-                  <span>For: {rev.itemTitle}</span>
-                  <span>{rev.createdAt}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
       </div>
