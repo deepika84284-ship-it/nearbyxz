@@ -9,6 +9,10 @@ import PanchayatCommunityHub from './components/PanchayatCommunityHub';
 import AdminModerationPanel from './components/AdminModerationPanel';
 import PostNeedWizard from './components/PostNeedWizard';
 import LoginGateScreen from './components/LoginGateScreen';
+import AuthModal from './components/AuthModal';
+import Footer from './components/Footer';
+import TrustStatsBar from './components/TrustStatsBar';
+import MobileBottomNav from './components/MobileBottomNav';
 import { 
   RAMANATHAPURAM_DISTRICT_DATA,
   INITIAL_USERS,
