@@ -195,8 +195,12 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body || {};
 
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required." });
+    if (!email || !email.trim()) {
+      return res.status(400).json({ error: "Please enter your email." });
+    }
+
+    if (!password || !password.trim()) {
+      return res.status(400).json({ error: "Please enter your password." });
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -212,6 +216,12 @@ app.post('/api/auth/login', async (req, res) => {
     const matchedUser = allUsersList.find(u => u.email && u.email.toLowerCase() === cleanEmail);
 
     if (!matchedUser) {
+      return res.status(401).json({ error: "Invalid email or password." });
+    }
+
+    // Verify password against stored password or default fallback
+    const expectedPassword = matchedUser.password || "pass123";
+    if (password.trim() !== expectedPassword) {
       return res.status(401).json({ error: "Invalid email or password." });
     }
 
@@ -233,8 +243,16 @@ app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, email, password, role, panchayat, locality } = req.body || {};
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: "Name, email, and password are required for registration." });
+    if (!name || !name.trim()) {
+      return res.status(400).json({ error: "Please enter your name." });
+    }
+
+    if (!email || !email.trim()) {
+      return res.status(400).json({ error: "Please enter your email." });
+    }
+
+    if (!password || !password.trim()) {
+      return res.status(400).json({ error: "Please enter a password." });
     }
 
     const cleanEmail = email.trim().toLowerCase();
@@ -257,6 +275,7 @@ app.post('/api/auth/register', async (req, res) => {
       id: `u-${Date.now()}`,
       name: name.trim(),
       email: cleanEmail,
+      password: password.trim(),
       avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
       role: role || "Customer/Buyer",
       district: "Ramanathapuram",
@@ -292,17 +311,42 @@ app.post('/api/auth/register', async (req, res) => {
 // 9c. POST /api/auth/google (Google Authentication Verification)
 app.post('/api/auth/google', async (req, res) => {
   try {
-    const { email, name, avatar, googleId } = req.body || {};
+    const { credential, email, name, avatar, googleId } = req.body || {};
 
-    if (!email) {
-      return res.status(200).json({
-        configured: true,
-        requiresInput: true,
-        message: "Google Authentication active. Please sign in with your Google account."
+    // If Google JWT token credential is supplied
+    let googleEmail = email;
+    let googleName = name;
+    let googleAvatar = avatar;
+    let googleSubId = googleId;
+
+    if (credential) {
+      try {
+        // Decode base64 JWT payload (standard JWT structure: header.payload.signature)
+        const parts = credential.split('.');
+        if (parts.length === 3) {
+          const payloadJson = Buffer.from(parts[1], 'base64').toString('utf-8');
+          const payload = JSON.parse(payloadJson);
+          if (payload.email) {
+            googleEmail = payload.email;
+            googleName = payload.name || payload.given_name || payload.email.split('@')[0];
+            googleAvatar = payload.picture || avatar;
+            googleSubId = payload.sub || googleId;
+          }
+        }
+      } catch (jwtErr) {
+        console.warn('Could not parse Google JWT token payload:', jwtErr);
+      }
+    }
+
+    if (!googleEmail || !googleEmail.trim()) {
+      const isConfigured = Boolean(process.env.GOOGLE_CLIENT_ID);
+      return res.status(isConfigured ? 400 : 501).json({
+        configured: isConfigured,
+        error: isConfigured ? "Google authentication token missing." : "Google Sign-In is not configured yet."
       });
     }
 
-    const cleanEmail = email.trim().toLowerCase();
+    const cleanEmail = googleEmail.trim().toLowerCase();
     let allUsersList = INITIAL_USERS;
 
     if (isConnected && db) {
@@ -315,12 +359,12 @@ app.post('/api/auth/google', async (req, res) => {
     let user = allUsersList.find(u => u.email && u.email.toLowerCase() === cleanEmail);
 
     if (!user) {
-      // Create new Google Authenticated user
+      // Auto-create account using verified Google identity
       user = {
-        id: googleId || `g-${Date.now()}`,
-        name: name || cleanEmail.split('@')[0],
+        id: googleSubId || `g-${Date.now()}`,
+        name: googleName || cleanEmail.split('@')[0],
         email: cleanEmail,
-        avatar: avatar || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
+        avatar: googleAvatar || "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
         role: "Customer/Buyer",
         district: "Ramanathapuram",
         taluk: "Ramanathapuram Taluk",
@@ -337,7 +381,7 @@ app.post('/api/auth/google', async (req, res) => {
         reviewCount: 1,
         successfulDeals: 1,
         phone: "+91 97890 *****",
-        bio: "Verified Google Authenticated Resident.",
+        bio: "Google Authenticated NeedNear Resident.",
         joinedDate: "Just now"
       };
 

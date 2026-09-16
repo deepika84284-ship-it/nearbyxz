@@ -141,6 +141,7 @@ export const INITIAL_USERS = [
     successfulDeals: 21,
     phone: "+91 98421 *****",
     email: "muthu@neednear.in",
+    password: "pass123",
     bio: "Local farmer & equipment provider in Perungulam. Renting high quality items to Ramnad neighbours.",
     joinedDate: "Jan 2025"
   },
@@ -164,6 +165,7 @@ export const INITIAL_USERS = [
     successfulDeals: 38,
     phone: "+91 94432 *****",
     email: "anitha@neednear.in",
+    password: "pass123",
     bio: "Event gear & photography equipment owner in Paramakudi. Fast responses, clean handovers.",
     joinedDate: "Nov 2024"
   },
@@ -188,6 +190,7 @@ export const INITIAL_USERS = [
     successfulDeals: 12,
     phone: "+91 97890 *****",
     email: "karthik@neednear.in",
+    password: "pass123",
     bio: "College event organizer & farm worker based in Perungulam.",
     joinedDate: "Feb 2025"
   },
@@ -211,6 +214,7 @@ export const INITIAL_USERS = [
     successfulDeals: 15,
     phone: "+91 96291 *****",
     email: "selvam@neednear.in",
+    password: "pass123",
     bio: "Agricultural water pumps and tools rentals in Sayalgudi.",
     joinedDate: "Dec 2024"
   },
@@ -234,6 +238,7 @@ export const INITIAL_USERS = [
     successfulDeals: 9,
     phone: "+91 91500 *****",
     email: "meena@neednear.in",
+    password: "pass123",
     bio: "Photographer & home baker in Tondi.",
     joinedDate: "Mar 2025"
   },
