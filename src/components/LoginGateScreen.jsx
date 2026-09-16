@@ -31,11 +31,6 @@ export default function LoginGateScreen({ allUsers = [], onLoginSuccess }) {
   const [successMessage, setSuccessMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Google Email Prompt Modal State
-  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
-  const [googleEmailInput, setGoogleEmailInput] = useState('');
-  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
-
   const clearAlerts = () => {
     setErrorMessage('');
     setSuccessMessage('');
@@ -126,96 +121,7 @@ export default function LoginGateScreen({ allUsers = [], onLoginSuccess }) {
     }
   };
 
-  // 2. CONTINUE WITH GOOGLE (PROMPTS USER FOR GOOGLE EMAIL ID)
-  const handleGoogleBtnClick = () => {
-    clearAlerts();
-    setGoogleEmailInput('');
-    setIsGoogleModalOpen(true);
-  };
-
-  const handleExecuteGoogleAuth = async (e) => {
-    e.preventDefault();
-    clearAlerts();
-
-    if (!googleEmailInput || !googleEmailInput.trim()) {
-      setErrorMessage('Please enter your Google Email ID.');
-      return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(googleEmailInput.trim())) {
-      setErrorMessage('Please enter a valid Google Email address.');
-      return;
-    }
-
-    setIsGoogleSubmitting(true);
-
-    try {
-      const response = await fetch(`${API_BASE}/auth/google`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: googleEmailInput.trim() })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.token) {
-        setErrorMessage(data.error || 'Google authentication failed.');
-        setIsGoogleSubmitting(false);
-        return;
-      }
-
-      localStorage.setItem('neednear_auth_token', data.token);
-      localStorage.setItem('neednear_auth_user', JSON.stringify(data.user));
-
-      setSuccessMessage(`Google Authentication Verified for ${data.user.name}!`);
-      setIsGoogleModalOpen(false);
-      
-      setTimeout(() => {
-        setIsGoogleSubmitting(false);
-        onLoginSuccess(data.user, data.token);
-      }, 600);
-    } catch (err) {
-      console.error('Backend Google Auth error:', err);
-      // Fallback create Google user session for typed email
-      const cleanEmail = googleEmailInput.trim().toLowerCase();
-      const nameFromEmail = cleanEmail.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-      const fallbackGoogleUser = {
-        id: `g-${Date.now()}`,
-        name: `${nameFromEmail} (Google)`,
-        email: cleanEmail,
-        avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200",
-        role: "Customer/Buyer",
-        district: "Ramanathapuram",
-        taluk: "Ramanathapuram Taluk",
-        locality: "Perungulam",
-        communityName: "Perungulam Community",
-        isVerified: true,
-        isTrustedMember: true,
-        googleAuth: true,
-        overallRating: 5.0,
-        reviewCount: 1,
-        successfulDeals: 1,
-        phone: "+91 97890 *****",
-        bio: `Verified Google Resident (${cleanEmail}).`,
-        joinedDate: "Just now"
-      };
-
-      const fallbackToken = `nn_google_token_${fallbackGoogleUser.id}_${Date.now()}`;
-      localStorage.setItem('neednear_auth_token', fallbackToken);
-      localStorage.setItem('neednear_auth_user', JSON.stringify(fallbackGoogleUser));
-
-      setSuccessMessage(`Google Authentication Verified for ${fallbackGoogleUser.name}!`);
-      setIsGoogleModalOpen(false);
-
-      setTimeout(() => {
-        setIsGoogleSubmitting(false);
-        onLoginSuccess(fallbackGoogleUser, fallbackToken);
-      }, 600);
-    }
-  };
-
-  // 3. NEW USER REGISTRATION FLOW
+  // 2. NEW USER REGISTRATION FLOW
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     clearAlerts();
@@ -573,42 +479,6 @@ export default function LoginGateScreen({ allUsers = [], onLoginSuccess }) {
             </div>
           )}
 
-          {/* 🔴 CONTINUE WITH GOOGLE BUTTON */}
-          <div className="space-y-3 pt-2 border-t border-slate-800">
-            <div className="relative flex items-center justify-center">
-              <span className="bg-slate-900 px-3 text-[10px] uppercase tracking-widest font-extrabold text-slate-500">
-                OR
-              </span>
-            </div>
-
-            <button
-              type="button"
-              disabled={isSubmitting}
-              onClick={handleGoogleBtnClick}
-              className="w-full bg-white hover:bg-slate-100 disabled:opacity-50 text-slate-900 font-extrabold text-xs py-3 px-4 rounded-2xl shadow-lg transition-all flex items-center justify-center space-x-3 border border-slate-200 group active:scale-[0.98]"
-            >
-              <svg className="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24">
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.62z"
-                />
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                />
-              </svg>
-              <span>Continue with Google</span>
-            </button>
-          </div>
-
           {/* Security Guarantee Footer */}
           <div className="pt-4 border-t border-slate-800/80 text-center text-[11px] text-slate-400 flex items-center justify-center space-x-2">
             <Award className="w-3.5 h-3.5 text-amber-400" />
@@ -617,68 +487,6 @@ export default function LoginGateScreen({ allUsers = [], onLoginSuccess }) {
 
         </div>
       </main>
-
-      {/* GOOGLE EMAIL PROMPT MODAL */}
-      {isGoogleModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-emerald-500/40 rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-5 text-white relative">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <div className="flex items-center space-x-2">
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.62z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-                </svg>
-                <h3 className="font-extrabold text-sm text-white">Google Identity Sign-In</h3>
-              </div>
-              <button onClick={() => setIsGoogleModalOpen(false)} className="text-slate-400 hover:text-white font-bold text-sm">
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleExecuteGoogleAuth} className="space-y-4 text-xs">
-              <div>
-                <label className="block text-slate-300 font-bold mb-1">Enter your Google Email ID:</label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                  <input
-                    type="email"
-                    value={googleEmailInput}
-                    onChange={(e) => setGoogleEmailInput(e.target.value)}
-                    required
-                    placeholder="e.g. yourname@gmail.com"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-medium"
-                    autoFocus
-                  />
-                </div>
-              </div>
-
-              <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-[11px] text-emerald-300">
-                ⚡ Authenticates your Google Email ID with backend verification & token generation.
-              </div>
-
-              <button
-                type="submit"
-                disabled={isGoogleSubmitting}
-                className="w-full bg-white hover:bg-slate-100 text-slate-950 font-extrabold py-3 rounded-xl shadow-lg text-xs flex items-center justify-center space-x-2"
-              >
-                {isGoogleSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin text-slate-950" />
-                    <span>Verifying Google Email...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Sign In with Google</span>
-                    <ArrowRight className="w-4 h-4 text-slate-950" />
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Bottom Footer Credits */}
       <footer className="w-full max-w-6xl py-4 text-center text-xs text-slate-400 z-10 border-t border-slate-900">
