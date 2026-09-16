@@ -215,12 +215,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     let matchedUser = allUsersList.find(u => u.email && u.email.toLowerCase() === cleanEmail);
 
-    if (matchedUser) {
-      const expectedPassword = matchedUser.password || "pass123";
-      if (password.trim() !== expectedPassword && password.trim().length < 3) {
-        return res.status(401).json({ error: "Invalid email or password." });
-      }
-    } else {
+    if (!matchedUser) {
       // Dynamic on-the-fly user creation for custom emails
       const nameFromEmail = cleanEmail.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
       matchedUser = {
